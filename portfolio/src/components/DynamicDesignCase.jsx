@@ -16,11 +16,14 @@ const FILES = [
 ]
 
 const TIMELINE_ROWS = [
-  { label: 'Wave_Speed', start: 4, width: 39, value: '1.20', keyframes: [4, 31, 43] },
-  { label: 'Mesh_Deformation', start: 18, width: 47, value: '0.68', keyframes: [18, 47, 65] },
-  { label: 'Noise_Frequency', start: 37, width: 35, value: '4.20', keyframes: [37, 56, 72] },
-  { label: 'Camera_Z_Depth', start: 61, width: 28, value: '-6.40', keyframes: [61, 75, 89] },
+  { label: 'Wave_Speed', start: 4, width: 39, value: 1.2, min: 0, max: 5, step: 0.05, keyframes: [4, 31, 43] },
+  { label: 'Mesh_Deformation', start: 18, width: 47, value: 0.68, min: 0, max: 1, step: 0.01, keyframes: [18, 47, 65] },
+  { label: 'Noise_Frequency', start: 37, width: 35, value: 4.2, min: 0, max: 10, step: 0.1, keyframes: [37, 56, 72] },
+  { label: 'Camera_Z_Depth', start: 61, width: 28, value: -6.4, min: -20, max: 5, step: 0.1, keyframes: [61, 75, 89] },
 ]
+
+const formatTrackValue = (value) => Number(value).toFixed(2)
+const formatTimecode = (position) => `00:${Math.round(position * 0.72).toString().padStart(2, '0')}`
 
 function Icon({ name }) {
   const paths = {
@@ -43,7 +46,13 @@ function Icon({ name }) {
   )
 }
 
-function FluidPreview({ paused }) {
+function FluidPreview({
+  paused,
+  speed,
+  deformation,
+  frequency,
+  depth,
+}) {
   const canvasRef = useRef(null)
   const pointerRef = useRef({ x: 0, y: 0 })
 
@@ -72,14 +81,14 @@ function FluidPreview({ paused }) {
     }
 
     const draw = (time = 0) => {
-      const t = time * 0.00032
+      const t = time * 0.00032 * Math.max(0.15, speed)
       const pointer = pointerRef.current
       context.fillStyle = '#050505'
       context.fillRect(0, 0, width, height)
 
       const glow = context.createRadialGradient(
         width * (0.58 + pointer.x * 0.03),
-        height * (0.46 + pointer.y * 0.03),
+        height * (0.46 + pointer.y * 0.03 + depth * 0.002),
         0,
         width * 0.55,
         height * 0.5,
@@ -104,9 +113,10 @@ function FluidPreview({ paused }) {
         const lower = []
         for (let index = 0; index <= points; index += 1) {
           const ratio = index / points
+          const amplitude = ribbon.amp * (0.55 + Math.max(0, deformation))
           const wave =
-            Math.sin(ratio * Math.PI * 2.2 + t * ribbon.speed + ribbonIndex) * ribbon.amp +
-            Math.sin(ratio * Math.PI * 4.6 - t * 0.55) * ribbon.amp * 0.28
+            Math.sin(ratio * Math.PI * Math.max(1.5, frequency * 0.52) + t * ribbon.speed + ribbonIndex) * amplitude +
+            Math.sin(ratio * Math.PI * Math.max(3, frequency * 1.1) - t * 0.55) * amplitude * 0.28
           const center =
             height * (ribbon.y + wave + pointer.y * 0.012) +
             Math.sin(ratio * Math.PI) * pointer.x * height * 0.018
@@ -204,7 +214,7 @@ function FluidPreview({ paused }) {
       canvas.removeEventListener('pointermove', onPointerMove)
       canvas.removeEventListener('pointerleave', onPointerLeave)
     }
-  }, [paused])
+  }, [paused, speed, deformation, frequency, depth])
 
   return <canvas ref={canvasRef} className="dynamic-ui__canvas" aria-label="Animated fluid design preview" />
 }
@@ -215,30 +225,143 @@ export default function DynamicDesignCase() {
   const [selectedFile, setSelectedFile] = useState(0)
   const [activeTrack, setActiveTrack] = useState('Wave_Speed')
   const [trackKeyframes, setTrackKeyframes] = useState(() => (
-    Object.fromEntries(TIMELINE_ROWS.map((row) => [row.label, row.keyframes]))
+    Object.fromEntries(TIMELINE_ROWS.map((row) => [
+      row.label,
+      row.keyframes.map((position, index) => ({
+        id: `${row.label}-${index}`,
+        position,
+      })),
+    ]))
   ))
-  const [playhead, setPlayhead] = useState(40)
+  const [trackValues, setTrackValues] = useState(() => (
+    Object.fromEntries(TIMELINE_ROWS.map((row) => [row.label, row.value]))
+  ))
+  const [selectedKeyframe, setSelectedKeyframe] = useState({
+    track: 'Wave_Speed',
+    id: 'Wave_Speed-1',
+  })
+  const [playhead, setPlayhead] = useState(31)
   const [factor, setFactor] = useState(0.42)
+  const [curveHandles, setCurveHandles] = useState({
+    start: { x: 136, y: 194 },
+    end: { x: 284, y: 24 },
+  })
   const [paused, setPaused] = useState(false)
+  const curveRef = useRef(null)
 
   const addKeyframe = (event, trackLabel) => {
+    if (event.target instanceof Element && event.target.closest('.dynamic-ui__keyframe')) return
     const rect = event.currentTarget.getBoundingClientRect()
-    const position = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100))
+    const position = event.clientX
+      ? Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100))
+      : playhead
     const roundedPosition = Math.round(position * 10) / 10
+    const id = `${trackLabel}-${Date.now()}`
 
     setActiveTrack(trackLabel)
+    setSelectedKeyframe({ track: trackLabel, id })
     setPlayhead(roundedPosition)
     setFactor(Number((0.28 + Math.random() * 0.44).toFixed(2)))
     setTrackKeyframes((current) => {
       const existing = current[trackLabel] || []
       return {
         ...current,
-        [trackLabel]: [...existing, roundedPosition].sort((a, b) => a - b),
+        [trackLabel]: [...existing, { id, position: roundedPosition }]
+          .sort((a, b) => a.position - b.position),
       }
     })
   }
 
-  const playheadTime = `00:${Math.round(playhead * 0.72).toString().padStart(2, '0')}`
+  const selectKeyframe = (track, keyframe) => {
+    setActiveTrack(track)
+    setSelectedKeyframe({ track, id: keyframe.id })
+    setPlayhead(keyframe.position)
+  }
+
+  const updateKeyframePosition = (track, id, position) => {
+    setTrackKeyframes((current) => ({
+      ...current,
+      [track]: current[track]
+        .map((keyframe) => (
+          keyframe.id === id ? { ...keyframe, position } : keyframe
+        ))
+        .sort((a, b) => a.position - b.position),
+    }))
+  }
+
+  const startKeyframeDrag = (event, track, keyframe) => {
+    event.preventDefault()
+    event.stopPropagation()
+    const lane = event.currentTarget.closest('.dynamic-ui__track-lane')
+    if (!lane) return
+
+    selectKeyframe(track, keyframe)
+    const rect = lane.getBoundingClientRect()
+
+    const move = (pointerEvent) => {
+      const position = Math.max(0, Math.min(100, ((pointerEvent.clientX - rect.left) / rect.width) * 100))
+      const roundedPosition = Math.round(position * 10) / 10
+      updateKeyframePosition(track, keyframe.id, roundedPosition)
+      setPlayhead(roundedPosition)
+    }
+    const stop = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', stop)
+    }
+
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', stop, { once: true })
+  }
+
+  const removeSelectedKeyframe = () => {
+    if (!selectedKeyframe) return
+    setTrackKeyframes((current) => ({
+      ...current,
+      [selectedKeyframe.track]: current[selectedKeyframe.track]
+        .filter((keyframe) => keyframe.id !== selectedKeyframe.id),
+    }))
+    setSelectedKeyframe(null)
+  }
+
+  const changeTrackValue = (track, value) => {
+    if (value === '' || Number.isNaN(Number(value))) return
+    setActiveTrack(track)
+    setTrackValues((current) => ({ ...current, [track]: Number(value) }))
+  }
+
+  const startCurveDrag = (event, handle) => {
+    event.preventDefault()
+    const svg = curveRef.current
+    if (!svg) return
+    const rect = svg.getBoundingClientRect()
+
+    const move = (pointerEvent) => {
+      const rawX = ((pointerEvent.clientX - rect.left) / rect.width) * 420
+      const rawY = ((pointerEvent.clientY - rect.top) / rect.height) * 220
+      const point = {
+        x: Math.max(handle === 'start' ? 50 : 215, Math.min(handle === 'start' ? 205 : 370, rawX)),
+        y: Math.max(24, Math.min(194, rawY)),
+      }
+
+      setCurveHandles((current) => {
+        const next = { ...current, [handle]: point }
+        setFactor(Number(((next.start.x + (420 - next.end.x)) / 640).toFixed(2)))
+        return next
+      })
+    }
+    const stop = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', stop)
+    }
+
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', stop, { once: true })
+  }
+
+  const selectedKeyframeData = selectedKeyframe
+    ? trackKeyframes[selectedKeyframe.track]?.find(({ id }) => id === selectedKeyframe.id)
+    : null
+  const playheadTime = formatTimecode(playhead)
 
   return (
     <section id="dynamic-ui-case" className="dynamic-ui" ref={sectionRef}>
@@ -322,8 +445,18 @@ export default function DynamicDesignCase() {
               <section className="dynamic-ui__panel dynamic-ui__timeline">
                 <header>
                   <div><span>ACTIVE_SESSION_01</span><h3>WAVE_DYNAMICS_LAB</h3></div>
-                  <div className="dynamic-ui__members">
-                    <span>AC</span><span>RT</span><span>AI</span><button type="button" aria-label="Add collaborator"><Icon name="plus" /></button>
+                  <div className="dynamic-ui__timeline-actions">
+                    <span className="dynamic-ui__selection-status">
+                      <i /> {selectedKeyframeData ? 'KEYFRAME SELECTED' : 'SELECT A KEYFRAME'}
+                    </span>
+                    <button
+                      type="button"
+                      className="dynamic-ui__delete-keyframe"
+                      onClick={removeSelectedKeyframe}
+                      disabled={!selectedKeyframeData}
+                    >
+                      DELETE
+                    </button>
                   </div>
                 </header>
                 <div className="dynamic-ui__timeline-scale">
@@ -335,31 +468,75 @@ export default function DynamicDesignCase() {
                       className={`dynamic-ui__timeline-row ${activeTrack === row.label ? 'is-active' : ''}`}
                       key={row.label}
                     >
-                      <button
-                        type="button"
-                        className="dynamic-ui__track-label"
-                        onClick={() => setActiveTrack(row.label)}
-                        aria-pressed={activeTrack === row.label}
-                      >
-                        <strong>{row.label}</strong><small>{row.value}</small>
-                      </button>
-                      <button
-                        type="button"
+                      <div className="dynamic-ui__track-label">
+                        <button
+                          type="button"
+                          className="dynamic-ui__track-select"
+                          onClick={() => setActiveTrack(row.label)}
+                          aria-pressed={activeTrack === row.label}
+                        >
+                          <strong>{row.label}</strong>
+                          {activeTrack === row.label && <small>ACTIVE</small>}
+                        </button>
+                        <label className="dynamic-ui__value-input">
+                          <span>[</span>
+                          <input
+                            type="number"
+                            min={row.min}
+                            max={row.max}
+                            step={row.step}
+                            value={trackValues[row.label]}
+                            onFocus={() => setActiveTrack(row.label)}
+                            onChange={(event) => changeTrackValue(row.label, event.target.value)}
+                            aria-label={`${row.label} value`}
+                          />
+                          <span>]</span>
+                        </label>
+                      </div>
+                      <div
                         className="dynamic-ui__track-lane"
                         onClick={(event) => addKeyframe(event, row.label)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            addKeyframe(event, row.label)
+                          }
+                        }}
+                        role="button"
+                        tabIndex="0"
                         aria-label={`Add keyframe to ${row.label}`}
                       >
                         <i
                           style={{ left: `${row.start}%`, width: `${row.width}%` }}
                         />
-                        {(trackKeyframes[row.label] || []).map((position, index) => (
-                          <b
-                            className="dynamic-ui__keyframe"
-                            style={{ left: `${position}%` }}
-                            key={`${row.label}-${position}-${index}`}
+                        {(trackKeyframes[row.label] || []).map((keyframe) => (
+                          <button
+                            type="button"
+                            className={`dynamic-ui__keyframe ${
+                              selectedKeyframe?.track === row.label && selectedKeyframe.id === keyframe.id
+                                ? 'is-selected'
+                                : ''
+                            }`}
+                            style={{ left: `${keyframe.position}%` }}
+                            key={keyframe.id}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              selectKeyframe(row.label, keyframe)
+                            }}
+                            onPointerDown={(event) => startKeyframeDrag(event, row.label, keyframe)}
+                            aria-label={`Keyframe at ${formatTimecode(keyframe.position)}`}
                           />
                         ))}
-                      </button>
+                        {selectedKeyframe?.track === row.label && selectedKeyframeData && (
+                          <span
+                            className="dynamic-ui__keyframe-inspector"
+                            style={{ left: `clamp(58px, ${selectedKeyframeData.position}%, calc(100% - 58px))` }}
+                          >
+                            <strong>Value: {formatTrackValue(trackValues[row.label])}</strong>
+                            <small>Time: {formatTimecode(selectedKeyframeData.position)}</small>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ))}
                   <span className="dynamic-ui__playhead">
@@ -402,7 +579,12 @@ export default function DynamicDesignCase() {
                   </div>
                 </header>
                 <div className="dynamic-ui__curve-editor">
-                  <svg viewBox="0 0 420 220" preserveAspectRatio="none" aria-label={`Ease-in-out curve controlling ${activeTrack}`}>
+                  <svg
+                    ref={curveRef}
+                    viewBox="0 0 420 220"
+                    preserveAspectRatio="none"
+                    aria-label={`Ease-in-out curve controlling ${activeTrack}`}
+                  >
                     <defs>
                       <pattern id="bezierSmallGrid" width="21" height="22" patternUnits="userSpaceOnUse">
                         <path d="M21 0H0V22" fill="none" stroke="rgba(17,17,15,.055)" strokeWidth="1" />
@@ -415,14 +597,30 @@ export default function DynamicDesignCase() {
                     <rect x="0" y="0" width="420" height="220" fill="url(#bezierGrid)" />
                     <line className="axis" x1="26" y1="194" x2="394" y2="194" />
                     <line className="axis" x1="26" y1="194" x2="26" y2="24" />
-                    <line className="handle-line" x1="26" y1="194" x2="136" y2="194" />
-                    <line className="handle-line" x1="394" y1="24" x2="284" y2="24" />
-                    <path className="curve" d="M26 194 C136 194 284 24 394 24" />
+                    <line className="handle-line" x1="26" y1="194" x2={curveHandles.start.x} y2={curveHandles.start.y} />
+                    <line className="handle-line" x1="394" y1="24" x2={curveHandles.end.x} y2={curveHandles.end.y} />
+                    <path
+                      className="curve"
+                      d={`M26 194 C${curveHandles.start.x} ${curveHandles.start.y} ${curveHandles.end.x} ${curveHandles.end.y} 394 24`}
+                    />
                     <circle className="endpoint" cx="26" cy="194" r="5" />
                     <circle className="endpoint" cx="394" cy="24" r="5" />
-                    <circle className="handle" cx="136" cy="194" r="4" />
-                    <circle className="handle" cx="284" cy="24" r="4" />
+                    <circle
+                      className="handle"
+                      cx={curveHandles.start.x}
+                      cy={curveHandles.start.y}
+                      r="6"
+                      onPointerDown={(event) => startCurveDrag(event, 'start')}
+                    />
+                    <circle
+                      className="handle"
+                      cx={curveHandles.end.x}
+                      cy={curveHandles.end.y}
+                      r="6"
+                      onPointerDown={(event) => startCurveDrag(event, 'end')}
+                    />
                   </svg>
+                  <span className="dynamic-ui__curve-hint">DRAG HANDLES TO SHAPE EASING</span>
                   <div className="dynamic-ui__curve-axis">
                     <span>INPUT</span><span>OUTPUT</span>
                   </div>
@@ -442,7 +640,13 @@ export default function DynamicDesignCase() {
               </button>
             </header>
             <div className="dynamic-ui__preview-screen">
-              <FluidPreview paused={paused} />
+              <FluidPreview
+                paused={paused}
+                speed={trackValues.Wave_Speed}
+                deformation={trackValues.Mesh_Deformation}
+                frequency={trackValues.Noise_Frequency}
+                depth={trackValues.Camera_Z_Depth}
+              />
               <div className="dynamic-ui__preview-meta">
                 <span>1080 × 1350</span>
                 <span>WEBGL / 30 FPS</span>
