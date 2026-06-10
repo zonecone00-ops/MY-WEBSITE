@@ -154,11 +154,11 @@ export default function Threads({
     }
 
     let frame = 0
-    let visible = false
+    let visible = true
     let pageVisible = !document.hidden
     let lastRender = 0
-    const frameInterval = 1000 / 30
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const frameInterval = 1000 / (reduceMotion ? 12 : 24)
     const render = (time) => {
       if (time - lastRender >= frameInterval) {
         currentMouse[0] += 0.08 * (targetMouse[0] - currentMouse[0])
@@ -176,27 +176,35 @@ export default function Threads({
       frame = 0
     }
     const resume = () => {
-      if (visible && pageVisible && !reduceMotion && !frame) {
+      if (visible && pageVisible && !frame) {
         frame = requestAnimationFrame(render)
       }
     }
     const visibilityObserver = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting && entry.intersectionRatio > 0.03
-      if (visible && reduceMotion) renderer.render({ scene: mesh })
+      visible = entry.isIntersecting
       visible ? resume() : stop()
-    }, { threshold: [0, 0.03, 0.15] })
+    }, { threshold: 0 })
     visibilityObserver.observe(container)
     const onVisibilityChange = () => {
       pageVisible = !document.hidden
       pageVisible ? resume() : stop()
     }
+    const onPageShow = () => {
+      pageVisible = true
+      resize()
+      resume()
+    }
     document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('pageshow', onPageShow)
+    renderer.render({ scene: mesh })
+    resume()
 
     return () => {
       stop()
       visibilityObserver.disconnect()
       resizeObserver.disconnect()
       document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('pageshow', onPageShow)
       container.removeEventListener('mousemove', onMouseMove)
       container.removeEventListener('mouseleave', onMouseLeave)
       gl.canvas.remove()

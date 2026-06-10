@@ -176,12 +176,12 @@ export default function Grainient({
     resize()
 
     let frame = 0
-    let visible = false
+    let visible = true
     let pageVisible = !document.hidden
     let lastRender = 0
     let contextLost = false
-    const frameInterval = 1000 / 24
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const frameInterval = 1000 / (reduceMotion ? 12 : 24)
     const start = performance.now()
 
     const loop = (time) => {
@@ -197,19 +197,23 @@ export default function Grainient({
       frame = 0
     }
     const resume = () => {
-      if (visible && pageVisible && !reduceMotion && !contextLost && !frame) {
+      if (visible && pageVisible && !contextLost && !frame) {
         frame = requestAnimationFrame(loop)
       }
     }
     const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting && entry.intersectionRatio > 0.05
-      if (visible && reduceMotion) renderer.render({ scene: mesh })
+      visible = entry.isIntersecting
       visible ? resume() : stop()
-    }, { threshold: [0, 0.05, 0.15] })
+    }, { threshold: 0 })
     observer.observe(container)
     const onVisibility = () => {
       pageVisible = !document.hidden
       pageVisible ? resume() : stop()
+    }
+    const onPageShow = () => {
+      pageVisible = true
+      resize()
+      resume()
     }
     const handleContextLost = (event) => {
       event.preventDefault()
@@ -224,8 +228,10 @@ export default function Grainient({
       resume()
     }
     document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pageshow', onPageShow)
     canvas.addEventListener('webglcontextlost', handleContextLost)
     canvas.addEventListener('webglcontextrestored', handleContextRestored)
+    renderer.render({ scene: mesh })
     resume()
 
     return () => {
@@ -233,6 +239,7 @@ export default function Grainient({
       observer.disconnect()
       resizeObserver.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pageshow', onPageShow)
       canvas.removeEventListener('webglcontextlost', handleContextLost)
       canvas.removeEventListener('webglcontextrestored', handleContextRestored)
       canvas.remove()

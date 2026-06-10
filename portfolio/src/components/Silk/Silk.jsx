@@ -120,11 +120,11 @@ export default function Silk({
     resize()
 
     let frame = 0
-    let visible = false
+    let visible = true
     let pageVisible = !document.hidden
     let lastRender = 0
-    const frameInterval = 1000 / 24
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const frameInterval = 1000 / (reduceMotion ? 12 : 24)
     const start = performance.now()
 
     const render = (time) => {
@@ -142,31 +142,38 @@ export default function Silk({
     }
 
     const resume = () => {
-      if (visible && pageVisible && !reduceMotion && !frame) {
+      if (visible && pageVisible && !frame) {
         frame = requestAnimationFrame(render)
       }
     }
 
     const observer = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting
-      if (visible && reduceMotion) renderer.render({ scene: mesh })
       visible ? resume() : stop()
-    }, { threshold: 0.03 })
+    }, { threshold: 0 })
 
     const onVisibilityChange = () => {
       pageVisible = !document.hidden
       pageVisible ? resume() : stop()
     }
+    const onPageShow = () => {
+      pageVisible = true
+      resize()
+      resume()
+    }
 
     observer.observe(container)
     document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('pageshow', onPageShow)
     renderer.render({ scene: mesh })
+    resume()
 
     return () => {
       stop()
       observer.disconnect()
       resizeObserver.disconnect()
       document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('pageshow', onPageShow)
       canvas.remove()
       gl.getExtension('WEBGL_lose_context')?.loseContext()
     }

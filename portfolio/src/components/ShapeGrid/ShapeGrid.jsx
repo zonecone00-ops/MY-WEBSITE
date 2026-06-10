@@ -110,11 +110,11 @@ export default function ShapeGrid({
       }
     }
 
-    let visible = false
+    let visible = true
     let pageVisible = !document.hidden
     let lastRender = 0
-    const frameInterval = 1000 / 24
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const frameInterval = 1000 / (reduceMotion ? 12 : 24)
 
     const animate = (time) => {
       if (time - lastRender >= frameInterval) {
@@ -136,7 +136,7 @@ export default function ShapeGrid({
     }
 
     const resume = () => {
-      if (visible && pageVisible && !reduceMotion && !animationFrame) {
+      if (visible && pageVisible && !animationFrame) {
         animationFrame = requestAnimationFrame(animate)
       }
     }
@@ -167,10 +167,9 @@ export default function ShapeGrid({
 
     const resizeObserver = new ResizeObserver(resize)
     const visibilityObserver = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting && entry.intersectionRatio > 0.03
-      if (visible && reduceMotion) draw()
+      visible = entry.isIntersecting
       visible ? resume() : stop()
-    }, { threshold: [0, 0.03, 0.15] })
+    }, { threshold: 0 })
     resizeObserver.observe(canvas)
     visibilityObserver.observe(canvas)
     canvas.addEventListener('mousemove', setHoveredCell)
@@ -179,15 +178,23 @@ export default function ShapeGrid({
       pageVisible = !document.hidden
       pageVisible ? resume() : stop()
     }
+    const onPageShow = () => {
+      pageVisible = true
+      resize()
+      resume()
+    }
     document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('pageshow', onPageShow)
     resize()
     draw()
+    resume()
 
     return () => {
       stop()
       resizeObserver.disconnect()
       visibilityObserver.disconnect()
       document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('pageshow', onPageShow)
       canvas.removeEventListener('mousemove', setHoveredCell)
       canvas.removeEventListener('mouseleave', clearHoveredCell)
     }
