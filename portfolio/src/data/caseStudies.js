@@ -1,0 +1,53 @@
+export const CASE_STUDIES = [
+  {
+    slug: 'ad-deconstruction',
+    number: '01',
+    title: 'Ad Deconstruction',
+    subtitle: 'AI-assisted product previsualization',
+    description: 'Translate leading smartphone commercials into producible shots, motion intent and reusable visual references.',
+    tags: ['AI PREVIS', 'SHOT DESIGN', 'PRODUCT CGI'],
+    image: '/case-study/mobile-ad-storyboard.jpg',
+    tone: 'red',
+  },
+  {
+    slug: 'character-multiverse',
+    number: '02',
+    title: 'Character Multiverse',
+    subtitle: 'Poster exploration and assetization',
+    description: 'Compare multiple visual worlds quickly, then turn the strongest direction into a repeatable character asset system.',
+    tags: ['ART DIRECTION', 'CHARACTER', 'AIGC'],
+    image: '/case-study/character-posters/scarlet-phantom.jpg',
+    tone: 'blue',
+  },
+  {
+    slug: 'webgl-editor',
+    number: '03',
+    title: 'WebGL Motion Editor',
+    subtitle: 'No-code dynamic asset platform',
+    description: 'A professional editor concept connecting property tracks, easing curves, shaders and real-time output.',
+    tags: ['UI/UX', 'WEBGL', 'NO-CODE'],
+    image: null,
+    tone: 'light',
+  },
+  {
+    slug: 'open-the-loop',
+    number: '04',
+    title: 'Open the Loop',
+    subtitle: 'No-code concept deconstruction',
+    description: 'A symbolic journey from programming anxiety to creative participation, expressed through X, barriers and O.',
+    tags: ['CONCEPT', 'STORYTELLING', 'UX'],
+    image: '/case-study/no-code-concept-board.jpg',
+    tone: 'violet',
+  },
+]
+
+export const CASE_ALIASES = {
+  '#ability-case': 'ad-deconstruction',
+  '#character-case': 'character-multiverse',
+  '#dynamic-ui-case': 'webgl-editor',
+  '#no-code-concept': 'open-the-loop',
+}
+
+export function getCaseStudy(slug) {
+  return CASE_STUDIES.find((caseStudy) => caseStudy.slug === slug)
+}

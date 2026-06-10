@@ -1,0 +1,7 @@
+node_modules/
+dist/
+source-media/
+.vite-dev.pid
+vite.log
+vite.stdout.log
+vite.stderr.log
