@@ -26,13 +26,19 @@ export default function Hero() {
       { threshold: 0.05 },
     )
 
+    video.load()
     observer.observe(section)
     document.addEventListener('visibilitychange', updatePlayback)
     window.addEventListener('focus', updatePlayback)
+    video.addEventListener('loadeddata', updatePlayback)
+    video.addEventListener('canplay', updatePlayback)
+    updatePlayback()
     return () => {
       observer.disconnect()
       document.removeEventListener('visibilitychange', updatePlayback)
       window.removeEventListener('focus', updatePlayback)
+      video.removeEventListener('loadeddata', updatePlayback)
+      video.removeEventListener('canplay', updatePlayback)
     }
   }, [])
 
@@ -45,7 +51,7 @@ export default function Hero() {
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
         poster="/hero-background-poster.jpg"
         disablePictureInPicture
         aria-hidden="true"

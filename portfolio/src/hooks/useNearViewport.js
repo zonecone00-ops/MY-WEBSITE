@@ -8,8 +8,18 @@ export function useNearViewport(rootMargin = '500px 0px') {
     const element = ref.current
     if (!element) return undefined
 
+    if (!('IntersectionObserver' in window)) {
+      setIsNear(true)
+      return undefined
+    }
+
     const observer = new IntersectionObserver(
-      ([entry]) => setIsNear(entry.isIntersecting),
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsNear(true)
+          observer.disconnect()
+        }
+      },
       { rootMargin, threshold: 0 },
     )
 

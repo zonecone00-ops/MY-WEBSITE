@@ -15,7 +15,12 @@ export default function Contact() {
     if (!background) return undefined
 
     const observer = new IntersectionObserver(
-      ([entry]) => setBackgroundActive(entry.isIntersecting),
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setBackgroundActive(true)
+          observer.disconnect()
+        }
+      },
       { rootMargin: '600px 0px', threshold: 0 },
     )
 
