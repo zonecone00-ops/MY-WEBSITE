@@ -158,7 +158,7 @@ export default function Threads({
     let pageVisible = !document.hidden
     let lastRender = 0
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const frameInterval = 1000 / (reduceMotion ? 12 : 24)
+    const frameInterval = 1000 / (reduceMotion ? 12 : 30)
     const render = (time) => {
       if (time - lastRender >= frameInterval) {
         currentMouse[0] += 0.08 * (targetMouse[0] - currentMouse[0])

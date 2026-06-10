@@ -181,7 +181,7 @@ export default function Grainient({
     let lastRender = 0
     let contextLost = false
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const frameInterval = 1000 / (reduceMotion ? 12 : 24)
+    const frameInterval = 1000 / (reduceMotion ? 12 : 30)
     const start = performance.now()
 
     const loop = (time) => {

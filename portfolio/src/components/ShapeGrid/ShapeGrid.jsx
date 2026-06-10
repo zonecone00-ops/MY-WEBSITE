@@ -114,7 +114,7 @@ export default function ShapeGrid({
     let pageVisible = !document.hidden
     let lastRender = 0
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const frameInterval = 1000 / (reduceMotion ? 12 : 24)
+    const frameInterval = 1000 / (reduceMotion ? 12 : 30)
 
     const animate = (time) => {
       if (time - lastRender >= frameInterval) {
