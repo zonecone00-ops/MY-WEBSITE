@@ -39,6 +39,17 @@ export const CASE_STUDIES = [
     image: '/case-study/no-code-concept-board.jpg',
     tone: 'violet',
   },
+  {
+    slug: 'motion-gallery',
+    number: '05',
+    title: 'Motion Works',
+    subtitle: 'Dynamic visual exhibition',
+    description: 'A curated gallery of short motion experiments covering particles, portals, growth, compositing and cinematic atmosphere.',
+    tags: ['MOTION', 'VIDEO', 'EXPERIMENT'],
+    image: null,
+    visual: 'motion',
+    tone: 'motion',
+  },
 ]
 
 export const CASE_ALIASES = {
@@ -46,6 +57,7 @@ export const CASE_ALIASES = {
   '#character-case': 'character-multiverse',
   '#dynamic-ui-case': 'webgl-editor',
   '#no-code-concept': 'open-the-loop',
+  '#motion-gallery': 'motion-gallery',
 }
 
 export function getCaseStudy(slug) {

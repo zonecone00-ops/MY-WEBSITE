@@ -14,6 +14,7 @@ const CASE_COMPONENTS = {
   'character-multiverse': lazy(() => import('./components/CharacterAbility')),
   'webgl-editor': lazy(() => import('./components/DynamicDesignCase')),
   'open-the-loop': lazy(() => import('./components/NoCodeConcept')),
+  'motion-gallery': lazy(() => import('./components/MotionGallery')),
 }
 
 function readRoute(hash) {
@@ -40,10 +41,10 @@ export default function App() {
 
   useEffect(() => {
     document.title = route.type === 'case'
-      ? `${getCaseStudy(route.slug).title} — Chen Zhuoyi`
+      ? `${getCaseStudy(route.slug).title} - Chen Zhuoyi`
       : route.type === 'archive'
-        ? 'Case Archive — Chen Zhuoyi'
-        : 'Chen Zhuoyi — Portfolio'
+        ? 'Case Archive - Chen Zhuoyi'
+        : 'Chen Zhuoyi - Portfolio'
 
     requestAnimationFrame(() => {
       if (route.type !== 'home') {

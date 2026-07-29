@@ -224,6 +224,13 @@
     linear-gradient(120deg, rgba(87, 42, 113, 0.3), transparent 52%);
 }
 
+.case-card--motion .case-card__wash {
+  background:
+    linear-gradient(to top, rgba(5, 5, 7, 0.98) 4%, rgba(5, 5, 7, 0.14) 72%),
+    linear-gradient(120deg, rgba(186, 56, 70, 0.24), transparent 48%),
+    linear-gradient(300deg, rgba(78, 100, 207, 0.2), transparent 56%);
+}
+
 .case-card__content {
   position: relative;
   z-index: 1;
@@ -370,6 +377,96 @@
 
 .case-card--light .case-card__wash {
   background: linear-gradient(to top, rgba(7, 7, 8, 0.98), transparent 76%);
+}
+
+.case-card__motion-visual {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 76% 24%, rgba(80, 101, 214, 0.24), transparent 26%),
+    radial-gradient(circle at 18% 78%, rgba(199, 58, 70, 0.2), transparent 30%),
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    #050506;
+  background-size: auto, auto, 48px 48px, 48px 48px, auto;
+}
+
+.case-card__motion-frame {
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid rgba(242, 239, 231, 0.18);
+  background: rgba(242, 239, 231, 0.05);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.22);
+}
+
+.case-card__motion-frame::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(120deg, transparent 42%, rgba(242, 239, 231, 0.32), transparent 58%),
+    repeating-linear-gradient(90deg, rgba(242, 239, 231, 0.16) 0 2px, transparent 2px 14px);
+  transform: translateX(-20%);
+}
+
+.case-card__motion-frame--one {
+  top: 14%;
+  left: 8%;
+  width: 48%;
+  height: 28%;
+}
+
+.case-card__motion-frame--two {
+  top: 32%;
+  right: 10%;
+  width: 44%;
+  height: 30%;
+}
+
+.case-card__motion-frame--three {
+  right: 20%;
+  bottom: 16%;
+  width: 40%;
+  height: 25%;
+}
+
+.case-card__motion-wave {
+  position: absolute;
+  top: 46%;
+  left: -10%;
+  width: 120%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #c44650, #f2efe7, #5266d8, transparent);
+  box-shadow:
+    0 -24px 34px rgba(196, 70, 80, 0.16),
+    0 24px 34px rgba(82, 102, 216, 0.12);
+  transform: rotate(-7deg);
+}
+
+.case-card__motion-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(242, 239, 231, 0.24);
+  border-radius: 50%;
+  background: rgba(5, 5, 7, 0.54);
+  transform: translate(-50%, -50%);
+}
+
+.case-card__motion-play::before {
+  position: absolute;
+  top: 50%;
+  left: 53%;
+  width: 0;
+  height: 0;
+  content: "";
+  border-top: 11px solid transparent;
+  border-bottom: 11px solid transparent;
+  border-left: 16px solid #f2efe7;
+  transform: translate(-50%, -50%);
 }
 
 .case-page {

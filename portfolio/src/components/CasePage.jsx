@@ -9,7 +9,7 @@ export default function CasePage({ caseStudy, component: CaseComponent }) {
   return (
     <div className="case-page">
       <nav className="case-page__toolbar" aria-label="Case study navigation">
-        <a href="#cases">← All Cases</a>
+        <a href="#cases">&lt;- All Cases</a>
         <span>{caseStudy.number} / {String(CASE_STUDIES.length).padStart(2, '0')}</span>
         <div>
           <a href={`#case/${previous.slug}`} aria-label={`Previous case: ${previous.title}`}>Prev</a>
@@ -26,7 +26,7 @@ export default function CasePage({ caseStudy, component: CaseComponent }) {
           <span>NEXT CASE / {next.number}</span>
           <a href={`#case/${next.slug}`}>
             <strong>{next.title}</strong>
-            <i>→</i>
+            <i>-&gt;</i>
           </a>
           <p>{next.subtitle}</p>
         </div>

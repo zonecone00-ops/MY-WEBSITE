@@ -14,6 +14,18 @@ function CaseVisual({ caseStudy }) {
     )
   }
 
+  if (caseStudy.visual === 'motion') {
+    return (
+      <div className="case-card__motion-visual" aria-hidden="true">
+        <span className="case-card__motion-frame case-card__motion-frame--one" />
+        <span className="case-card__motion-frame case-card__motion-frame--two" />
+        <span className="case-card__motion-frame case-card__motion-frame--three" />
+        <span className="case-card__motion-wave" />
+        <span className="case-card__motion-play" />
+      </div>
+    )
+  }
+
   return (
     <div className="case-card__editor-visual" aria-hidden="true">
       <span className="case-card__editor-sidebar" />
@@ -48,7 +60,7 @@ function CaseCard({ caseStudy, compact = false }) {
           <div>
             {caseStudy.tags.map((tag) => <span key={tag}>{tag}</span>)}
           </div>
-          <strong>View Case <i>↗</i></strong>
+          <strong>View Case <i>-&gt;</i></strong>
         </div>
       </div>
     </a>
@@ -57,26 +69,27 @@ function CaseCard({ caseStudy, compact = false }) {
 
 export function SelectedCases() {
   const [ref, inView] = useInView(0.08)
+  const caseCount = CASE_STUDIES.length
 
   return (
     <section id="selected-cases" className="selected-cases" ref={ref}>
       <div className="container">
         <div className={`section-tag reveal ${inView ? 'in-view' : ''}`}>
-          <span className="section-tag__label">Selected Cases / 実践記録</span>
+          <span className="section-tag__label">Selected Cases / Case Files</span>
           <span className="section-tag__line" />
-          <span className="section-tag__num">04 FILES</span>
+          <span className="section-tag__num">{String(caseCount).padStart(2, '0')} FILES</span>
         </div>
 
         <header className="selected-cases__header">
           <h2 className={`reveal ${inView ? 'in-view' : ''}`}>
-            Four project files.<br /><em>Choose a case study.</em>
+            {caseCount} project files.<br /><em>Choose a case study.</em>
           </h2>
           <div className={`reveal reveal-d1 ${inView ? 'in-view' : ''}`}>
             <p>
               Each case opens as an independent presentation, so interviewers can
               move directly to the thinking, process and outcome they want to inspect.
             </p>
-            <a href="#cases">Open Case Archive <span>→</span></a>
+            <a href="#cases">Open Case Archive <span>-&gt;</span></a>
           </div>
         </header>
 
@@ -86,7 +99,7 @@ export function SelectedCases() {
               <span>{caseStudy.number}</span>
               <strong>{caseStudy.title}</strong>
               <small>{caseStudy.subtitle}</small>
-              <i>↗</i>
+              <i>-&gt;</i>
             </a>
           ))}
         </div>
@@ -96,22 +109,25 @@ export function SelectedCases() {
 }
 
 export function CaseArchive() {
+  const caseCount = CASE_STUDIES.length
+
   return (
     <section className="case-archive" aria-labelledby="case-archive-title">
       <div className="case-archive__grid" aria-hidden="true" />
       <div className="container case-archive__inner">
         <header className="case-archive__header">
           <div>
-            <p>CASE ARCHIVE / 01—04</p>
+            <p>CASE ARCHIVE / 01-{String(caseCount).padStart(2, '0')}</p>
             <h1 id="case-archive-title">Select a<br /><em>project file.</em></h1>
           </div>
           <div className="case-archive__intro">
             <span>INTERVIEW MODE</span>
             <p>
-              Four independent case studies covering AI previsualization,
-              character assetization, no-code product UI and concept storytelling.
+              Independent case studies covering AI previsualization,
+              character assetization, no-code product UI, concept storytelling
+              and motion experiments.
             </p>
-            <a href="#home">Return Home <i>↙</i></a>
+            <a href="#home">Return Home <i>&lt;-</i></a>
           </div>
         </header>
 
