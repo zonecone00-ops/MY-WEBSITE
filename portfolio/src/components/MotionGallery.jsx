@@ -63,6 +63,16 @@ const motionWorks = [
     tags: ['GROWTH', 'COMPOSITE', 'SCENE'],
     copy: 'A growth-themed motion scene exploring material change, spatial rhythm and environmental build-up.',
   },
+  {
+    id: 'abstract-cloth',
+    number: '07',
+    title: 'Abstract Cloth',
+    label: 'Blender Cloth Simulation',
+    src: '/motion-gallery/07-abstract-cloth.mp4',
+    aspect: 'cinema',
+    tags: ['BLENDER', 'CLOTH', 'SIMULATION'],
+    copy: 'An abstract cloth simulation study focused on fabric motion, gravity, folds and material rhythm.',
+  },
 ]
 
 function LazyMotionVideo({ src, title, active = true, controls = false }) {
@@ -141,7 +151,7 @@ export default function MotionGallery() {
         <div className="section-tag motion-gallery__tag">
           <span className="section-tag__label">Project Archive 05 / Motion Works</span>
           <span className="section-tag__line" />
-          <span className="section-tag__num">06 FILMS</span>
+          <span className="section-tag__num">{String(motionWorks.length).padStart(2, '0')} FILMS</span>
         </div>
 
         <header className="motion-gallery__hero">
@@ -153,7 +163,7 @@ export default function MotionGallery() {
             </h1>
             <p>
               A curated motion wall for short experiments in particles, portals,
-              growth, compositing and cinematic atmosphere.
+              cloth, growth, compositing and cinematic atmosphere.
             </p>
           </div>
 

@@ -212,7 +212,7 @@
 
 .motion-gallery__index {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   margin: 82px 0 34px;
   border-top: 1px solid rgba(242, 239, 231, 0.2);
   border-left: 1px solid rgba(242, 239, 231, 0.18);
